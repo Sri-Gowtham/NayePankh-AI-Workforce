@@ -35,6 +35,7 @@ Categories:
 - content     → requests to generate social media posts, newsletters, campaigns, press releases
 - analytics   → requests for reports, KPIs, statistics, dashboards, trend analysis
 - resource    → queries about funds, donations, expenditures, budget, donors
+- workflow    → complex requests that require multiple agents collaborating (e.g. event planning, campaigns, career path guidance)
 - general     → greetings, meta questions about the system, or unclear requests
 
 Respond with a JSON object ONLY, no explanation:
@@ -67,9 +68,8 @@ class SupervisorAgent:
         )
         self._router_agent = Agent(
             model=self.router_llm,
-            system_prompt=ROUTER_SYSTEM_PROMPT,
+            system_message=ROUTER_SYSTEM_PROMPT,
             markdown=False,
-            show_tool_calls=False,
         )
         logger.info("[Supervisor] Initialized with router agent.")
 
@@ -183,6 +183,24 @@ class SupervisorAgent:
         elif domain == "resource":
             from agents.resource_agent import ResourceAgent
             return ResourceAgent().run(user_message, history, session_id)
+
+        elif domain == "workflow":
+            from engine.orchestrator import Orchestrator
+            import threading
+            orch = Orchestrator()
+            
+            def run_workflow_in_background():
+                result = orch.execute_workflow(session_id, user_message)
+                # When done, save the final report to chat messages
+                if result.get("success"):
+                    save_message(session_id, "assistant", result.get("final_report"), agent="supervisor")
+                else:
+                    save_message(session_id, "assistant", f"Workflow failed: {result.get('error')}", agent="supervisor")
+
+            thread = threading.Thread(target=run_workflow_in_background)
+            thread.start()
+            
+            return "⚡ **Workflow Started**... Check the timeline below for live progress."
 
         else:
             return self._handle_general(user_message)

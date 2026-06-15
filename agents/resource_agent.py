@@ -49,13 +49,12 @@ class ResourceAgent:
         kb_context = get_full_kb_as_context("resource")
         self.agent = Agent(
             model=self.llm,
-            system_prompt=SYSTEM_PROMPT + f"\n\n--- RESOURCE KNOWLEDGE BASE ---\n{kb_context}",
+            system_message=SYSTEM_PROMPT + f"\n\n--- RESOURCE KNOWLEDGE BASE ---\n{kb_context}",
             tools=[
                 add_fund, add_expenditure, add_donor,
                 get_budget_utilization, export_to_csv, export_to_pdf,
             ],
             markdown=True,
-            show_tool_calls=True,
         )
         logger.info("[ResourceAgent] Initialized.")
 

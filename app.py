@@ -42,9 +42,10 @@ init_db()
 # ── Import UI Components ──────────────────────────────────────
 from ui.components.sidebar      import render_sidebar
 from ui.components.chat_window  import render_chat_window, render_chat_input
+from ui.components.timeline     import render_workflow_timeline
 from ui.components.dashboard    import render_dashboard
 from ui.components.task_tracker import render_task_tracker
-from tools.db_tools             import save_message
+from tools.db_tools             import save_message, get_session_messages
 
 # ── Session State Bootstrap ───────────────────────────────────
 def _init_session():
@@ -84,14 +85,20 @@ tab_chat, tab_dashboard, tab_tasks = st.tabs([
     "📋 Task Log",
 ])
 
-# ══════════════════════════════════════════════════════════════
-# TAB 1: Chat
-# ══════════════════════════════════════════════════════════════
 with tab_chat:
-    # Render existing messages
+    # 1. Sync messages from DB on every render to catch background thread updates
+    session_id = st.session_state["session_id"]
+    db_msgs_res = get_session_messages(session_id, limit=50)
+    if db_msgs_res.get("success"):
+        st.session_state["messages"] = db_msgs_res["data"]
+
+    # 2. Render existing messages
     render_chat_window(st.session_state["messages"])
 
-    # Handle quick action prompt injected from sidebar
+    # 3. Render active workflow timeline (polls while running)
+    is_workflow_running = render_workflow_timeline(session_id)
+
+    # 4. Handle quick action prompt injected from sidebar
     if st.session_state.get("quick_prompt"):
         user_input = st.session_state.pop("quick_prompt")
     else:
@@ -122,12 +129,6 @@ with tab_chat:
                     )
 
             st.markdown(response_text)
-
-        # Persist assistant message to display state
-        st.session_state["messages"].append({
-            "role": "assistant",
-            "content": response_text,
-        })
 
         st.rerun()
 

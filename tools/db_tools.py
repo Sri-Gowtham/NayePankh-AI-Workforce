@@ -585,3 +585,104 @@ def compute_kpis() -> dict:
         return _ok(kpis)
     except Exception as e:
         return _err(str(e))
+
+
+# ════════════════════════════════════════════════════════════
+# ORCHESTRATION WORKFLOW TOOLS (PHASE 2)
+# ════════════════════════════════════════════════════════════
+
+def create_workflow(session_id: str, title: str, original_prompt: str) -> dict:
+    """Create a parent workflow record for a multi-agent orchestration."""
+    workflow_id = str(uuid.uuid4())
+    try:
+        execute_query(
+            "INSERT INTO workflows (id, session_id, title, original_prompt) "
+            "VALUES (?, ?, ?, ?)",
+            (workflow_id, session_id, title, original_prompt), fetch="none"
+        )
+        return _ok({"workflow_id": workflow_id})
+    except Exception as e:
+        return _err(str(e))
+
+
+def update_workflow_status(workflow_id: str, status: str, final_result: str = None) -> dict:
+    """Update workflow status and optional final result."""
+    try:
+        if status in ("completed", "failed"):
+            execute_query(
+                "UPDATE workflows SET status=?, final_result=?, completed_at=datetime('now') WHERE id=?",
+                (status, final_result, workflow_id), fetch="none"
+            )
+        else:
+            execute_query(
+                "UPDATE workflows SET status=?, final_result=? WHERE id=?",
+                (status, final_result, workflow_id), fetch="none"
+            )
+        return _ok({"workflow_updated": True})
+    except Exception as e:
+        return _err(str(e))
+
+
+def get_workflow(workflow_id: str) -> dict:
+    """Fetch workflow metadata."""
+    try:
+        row = execute_query("SELECT * FROM workflows WHERE id=?", (workflow_id,), fetch="one")
+        return _ok(row)
+    except Exception as e:
+        return _err(str(e))
+
+
+def get_active_workflow(session_id: str) -> dict:
+    """Fetch the currently running workflow for a session, if any."""
+    try:
+        row = execute_query(
+            "SELECT * FROM workflows WHERE session_id=? AND status IN ('planning', 'running') "
+            "ORDER BY created_at DESC LIMIT 1",
+            (session_id,), fetch="one"
+        )
+        return _ok(row)
+    except Exception as e:
+        return _err(str(e))
+
+
+def add_workflow_step(workflow_id: str, agent: str, task_prompt: str) -> dict:
+    """Add a child step to a workflow."""
+    try:
+        execute_query(
+            "INSERT INTO workflow_steps (workflow_id, agent, task_prompt) VALUES (?, ?, ?)",
+            (workflow_id, agent, task_prompt), fetch="none"
+        )
+        row = execute_query("SELECT last_insert_rowid() AS id", fetch="one")
+        return _ok({"step_id": row["id"]})
+    except Exception as e:
+        return _err(str(e))
+
+
+def update_workflow_step(step_id: int, status: str, result: str = None) -> dict:
+    """Update the status and result of a specific workflow step."""
+    try:
+        if status == "running":
+            execute_query(
+                "UPDATE workflow_steps SET status=?, started_at=datetime('now') WHERE id=?",
+                (status, step_id), fetch="none"
+            )
+        elif status in ("completed", "failed"):
+            execute_query(
+                "UPDATE workflow_steps SET status=?, result=?, completed_at=datetime('now') WHERE id=?",
+                (status, result, step_id), fetch="none"
+            )
+        return _ok({"step_updated": True})
+    except Exception as e:
+        return _err(str(e))
+
+
+def get_workflow_steps(workflow_id: str) -> dict:
+    """Retrieve all steps for a given workflow."""
+    try:
+        rows = execute_query(
+            "SELECT * FROM workflow_steps WHERE workflow_id=? ORDER BY id ASC",
+            (workflow_id,)
+        )
+        return _ok(rows)
+    except Exception as e:
+        return _err(str(e))

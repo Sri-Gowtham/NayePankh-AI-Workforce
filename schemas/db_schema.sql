@@ -226,6 +226,39 @@ CREATE TABLE IF NOT EXISTS analytics_snapshots (
 );
 CREATE INDEX IF NOT EXISTS idx_snapshots_metric ON analytics_snapshots(metric_key, snapshot_date);
 
+-- ────────────────────────────────────────────────
+-- 13. Workflows (Parent record for an orchestration run)
+-- ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS workflows (
+    id            TEXT PRIMARY KEY,           -- UUID
+    session_id    TEXT REFERENCES sessions(id) ON DELETE CASCADE,
+    title         TEXT NOT NULL,              -- e.g., "Campaign Builder"
+    original_prompt TEXT NOT NULL,
+    status        TEXT DEFAULT 'planning'     -- planning | running | completed | failed
+                  CHECK(status IN ('planning', 'running', 'completed', 'failed')),
+    final_result  TEXT,                       -- Aggregated response from Supervisor
+    created_at    DATETIME DEFAULT (datetime('now')),
+    completed_at  DATETIME
+);
+CREATE INDEX IF NOT EXISTS idx_workflows_session ON workflows(session_id);
+
+-- ────────────────────────────────────────────────
+-- 14. Workflow Steps (Individual agent execution records)
+-- ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS workflow_steps (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    workflow_id   TEXT REFERENCES workflows(id) ON DELETE CASCADE,
+    agent         TEXT NOT NULL,              -- e.g., "content_agent"
+    task_prompt   TEXT NOT NULL,              -- Specific instruction given to this agent
+    status        TEXT DEFAULT 'pending'      -- pending | running | completed | failed
+                  CHECK(status IN ('pending', 'running', 'completed', 'failed')),
+    result        TEXT,                       -- Output from the agent
+    started_at    DATETIME,
+    completed_at  DATETIME
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow ON workflow_steps(workflow_id);
+
 -- ============================================================
 -- End of Schema
 -- ============================================================
+

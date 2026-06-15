@@ -53,12 +53,11 @@ class ContentAgent:
         kb_context = get_full_kb_as_context("content")
         self.agent = Agent(
             model=self.llm,
-            system_prompt=SYSTEM_PROMPT + f"\n\n--- CONTENT KNOWLEDGE BASE ---\n{kb_context}",
+            system_message=SYSTEM_PROMPT + f"\n\n--- CONTENT KNOWLEDGE BASE ---\n{kb_context}",
             tools=[
                 save_content, get_content_items, update_content_status,
             ],
             markdown=True,
-            show_tool_calls=True,
         )
         logger.info("[ContentAgent] Initialized.")
 

@@ -40,14 +40,13 @@ class VolunteerAgent:
         kb_context = get_full_kb_as_context("volunteer")
         self.agent = Agent(
             model=self.llm,
-            system_prompt=SYSTEM_PROMPT + f"\n\n--- VOLUNTEER KNOWLEDGE BASE ---\n{kb_context}",
+            system_message=SYSTEM_PROMPT + f"\n\n--- VOLUNTEER KNOWLEDGE BASE ---\n{kb_context}",
             tools=[
                 add_volunteer, get_volunteer, list_volunteers,
                 update_volunteer_status, log_volunteer_hours,
                 assign_volunteer_task, get_volunteer_assignments,
             ],
             markdown=True,
-            show_tool_calls=True,
         )
         logger.info("[VolunteerAgent] Initialized.")
 

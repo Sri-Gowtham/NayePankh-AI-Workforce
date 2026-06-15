@@ -45,7 +45,7 @@ class InternshipAgent:
         kb_context = get_full_kb_as_context("internship")
         self.agent = Agent(
             model=self.llm,
-            system_prompt=SYSTEM_PROMPT + f"\n\n--- INTERNSHIP KNOWLEDGE BASE ---\n{kb_context}",
+            system_message=SYSTEM_PROMPT + f"\n\n--- INTERNSHIP KNOWLEDGE BASE ---\n{kb_context}",
             tools=[
                 add_intern, get_intern, list_interns,
                 update_intern_status, add_intern_milestone,
@@ -53,7 +53,6 @@ class InternshipAgent:
                 send_intern_offer_letter, send_certificate_notification,
             ],
             markdown=True,
-            show_tool_calls=True,
         )
         logger.info("[InternshipAgent] Initialized.")
 

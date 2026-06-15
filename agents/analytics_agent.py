@@ -49,14 +49,13 @@ class AnalyticsAgent:
         kb_context = get_full_kb_as_context("analytics")
         self.agent = Agent(
             model=self.llm,
-            system_prompt=SYSTEM_PROMPT + f"\n\n--- ANALYTICS KNOWLEDGE BASE ---\n{kb_context}",
+            system_message=SYSTEM_PROMPT + f"\n\n--- ANALYTICS KNOWLEDGE BASE ---\n{kb_context}",
             tools=[
                 compute_kpis, get_snapshots, save_snapshot,
                 get_budget_utilization, get_recent_tasks,
                 export_to_csv, export_to_pdf,
             ],
             markdown=True,
-            show_tool_calls=True,
         )
         logger.info("[AnalyticsAgent] Initialized.")
 
