@@ -1,0 +1,76 @@
+{
+  "domain": "resource_finance_management",
+  "version": "1.0",
+  "last_updated": "2025-01-01",
+  "fund_categories": {
+    "education": {
+      "description": "Scholarships, study materials, tuition support, digital devices for students",
+      "annual_budget_inr": 500000,
+      "examples": ["Textbooks", "Tablet/laptop for student", "School fee assistance"]
+    },
+    "health": {
+      "description": "Medical camps, hygiene kits, first-aid supplies",
+      "annual_budget_inr": 150000,
+      "examples": ["Medical camp supplies", "Hygiene drive kits", "First-aid boxes"]
+    },
+    "operations": {
+      "description": "Organizational running costs: communication, cloud tools, office supplies",
+      "annual_budget_inr": 200000,
+      "examples": ["Internet charges", "Software subscriptions", "Printing"]
+    },
+    "events": {
+      "description": "Awareness drives, fundraisers, community outreach events",
+      "annual_budget_inr": 100000,
+      "examples": ["Venue rental", "Banners/flyers", "Event logistics"]
+    },
+    "emergency": {
+      "description": "Unplanned urgent requirements. Requires Executive Director approval.",
+      "annual_budget_inr": 50000,
+      "examples": ["Disaster relief", "Emergency medical support"]
+    }
+  },
+  "procurement_rules": {
+    "under_1000_inr": {
+      "approval_required": "None",
+      "documentation": "Receipt sufficient"
+    },
+    "1000_to_10000_inr": {
+      "approval_required": "Program Coordinator",
+      "documentation": "Receipt + brief justification email"
+    },
+    "10000_to_50000_inr": {
+      "approval_required": "Finance Manager",
+      "documentation": "Purchase order + 2 vendor quotes + receipt"
+    },
+    "above_50000_inr": {
+      "approval_required": "Executive Director + Board Member",
+      "documentation": "Formal proposal + 3 vendor quotes + board approval minutes + receipt"
+    }
+  },
+  "donor_management": {
+    "receipt_template": "Official receipt with: NGO name, donor name, amount, date, 80G certificate number, authorized signature",
+    "80g_certificate_number": "FILL_IN_ACTUAL_NUMBER",
+    "acknowledgement_sla_days": 3,
+    "recurring_donor_review_frequency": "Quarterly",
+    "donor_tiers": {
+      "supporter":  {"min_inr": 1,      "max_inr": 4999},
+      "friend":     {"min_inr": 5000,   "max_inr": 24999},
+      "champion":   {"min_inr": 25000,  "max_inr": 99999},
+      "patron":     {"min_inr": 100000, "max_inr": null}
+    }
+  },
+  "compliance": {
+    "fcra_registered": false,
+    "fcra_note": "Foreign contributions not currently accepted. Update this field when FCRA is obtained.",
+    "80g_registered": true,
+    "audit_frequency": "Annual",
+    "report_submission_deadline": "September 30 (for previous financial year April–March)",
+    "required_records_retention_years": 7
+  },
+  "budget_alert_policy": {
+    "warning_threshold": 0.85,
+    "critical_threshold": 0.95,
+    "action_on_warning": "Notify Finance Manager via email",
+    "action_on_critical": "Freeze new expenditures in category. Notify Executive Director."
+  }
+}

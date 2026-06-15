@@ -1,0 +1,62 @@
+{
+  "domain": "volunteer_management",
+  "version": "1.0",
+  "last_updated": "2025-01-01",
+  "onboarding": {
+    "steps": [
+      "1. Submit application form with skills and availability",
+      "2. Receive confirmation email within 48 hours",
+      "3. Attend virtual orientation (every 1st Saturday of the month)",
+      "4. Sign the Volunteer Code of Conduct",
+      "5. Get assigned to a team by the coordinator",
+      "6. Complete first task within 2 weeks of onboarding"
+    ],
+    "required_documents": ["Government ID", "Recent photo", "Short bio (100 words)"],
+    "orientation_schedule": "Every 1st Saturday, 11:00 AM IST via Google Meet"
+  },
+  "roles": {
+    "coordinator": {
+      "description": "Manages a team of 5-10 field volunteers. POC for NGO leadership.",
+      "responsibilities": ["Team scheduling", "Progress reporting", "Conflict resolution"],
+      "min_experience_months": 3
+    },
+    "field": {
+      "description": "Direct ground-level volunteer executing tasks.",
+      "responsibilities": ["Event participation", "Outreach", "Data collection"],
+      "min_experience_months": 0
+    },
+    "mentor": {
+      "description": "Guides interns through their program.",
+      "responsibilities": ["Weekly check-ins", "Milestone reviews", "Certificate recommendation"],
+      "min_experience_months": 6
+    },
+    "admin": {
+      "description": "Handles organizational and documentation tasks remotely.",
+      "responsibilities": ["Database management", "Communications", "Reporting"],
+      "min_experience_months": 0
+    }
+  },
+  "skills_taxonomy": [
+    "outreach", "event_management", "social_media", "graphic_design",
+    "content_writing", "teaching", "counseling", "data_entry",
+    "fundraising", "photography", "video_editing", "web_development",
+    "research", "translation", "legal", "medical", "accounting"
+  ],
+  "recognition_policy": {
+    "monthly_best_volunteer": "Certificate + social media spotlight",
+    "100_hours": "Special recognition badge",
+    "1_year_anniversary": "Alumni status offer + recommendation letter",
+    "referral_bonus": "Priority event access for every 2 active referrals"
+  },
+  "retention_triggers": {
+    "inactive_days_threshold": 30,
+    "action": "Send re-engagement email and reassign lighter tasks"
+  },
+  "code_of_conduct": [
+    "Respect all beneficiaries, fellow volunteers, and staff",
+    "Maintain confidentiality of beneficiary data",
+    "Do not represent NayePankh officially without approval",
+    "Report misconduct to coordinator@nayepankh.org",
+    "Minimum commitment: 4 hours per month"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "domain": "internship_management",
+  "version": "1.0",
+  "last_updated": "2025-01-01",
+  "programs": {
+    "1_month": {
+      "name": "Short Internship",
+      "duration_weeks": 4,
+      "min_hours_per_week": 10,
+      "certificate_threshold_weeks": 3,
+      "stipend": false
+    },
+    "3_month": {
+      "name": "Standard Internship",
+      "duration_weeks": 12,
+      "min_hours_per_week": 15,
+      "certificate_threshold_weeks": 10,
+      "stipend": false
+    },
+    "6_month": {
+      "name": "Leadership Track",
+      "duration_weeks": 24,
+      "min_hours_per_week": 20,
+      "certificate_threshold_weeks": 20,
+      "stipend": true,
+      "stipend_amount_inr": 2000
+    }
+  },
+  "eligibility": {
+    "min_age": 18,
+    "education": "Enrolled in or completed any undergraduate/postgraduate program",
+    "required_documents": [
+      "College ID or enrollment proof",
+      "Resume / CV",
+      "Cover letter (200 words minimum)",
+      "Government photo ID"
+    ]
+  },
+  "pipeline_stages": {
+    "applied":    "Application received, awaiting review",
+    "reviewing":  "Application under evaluation by program coordinator",
+    "accepted":   "Offer letter issued, awaiting joining confirmation",
+    "active":     "Intern has joined and is working on assigned project",
+    "completed":  "Intern has finished the program successfully",
+    "rejected":   "Application was not selected"
+  },
+  "orientation": {
+    "duration_hours": 2,
+    "schedule": "Within 3 days of joining",
+    "topics": [
+      "NayePankh mission and impact areas",
+      "Team structure and point of contact",
+      "Communication tools (email, Slack/WhatsApp group)",
+      "Weekly milestone format",
+      "Code of conduct for interns"
+    ]
+  },
+  "milestone_template": {
+    "fields": ["week", "key_tasks_completed", "learnings", "challenges", "next_week_plan"],
+    "submission_deadline": "Every Sunday by 11:59 PM"
+  },
+  "certificate_conditions": [
+    "Completed minimum required weeks (per program)",
+    "Submitted at least 80% of weekly milestones",
+    "No disciplinary action on record",
+    "Positive mentor recommendation"
+  ],
+  "certificate_template": {
+    "format": "PDF",
+    "signatories": ["Program Coordinator", "Executive Director"],
+    "delivery": "Email within 7 working days of completion"
+  },
+  "mentor_assignment": {
+    "ratio": "1 mentor per 3 interns maximum",
+    "check_in_frequency": "Weekly (minimum 30 minutes)"
+  }
+}

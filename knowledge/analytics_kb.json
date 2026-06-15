@@ -1,0 +1,83 @@
+{
+  "domain": "analytics_reporting",
+  "version": "1.0",
+  "last_updated": "2025-01-01",
+  "kpi_definitions": {
+    "active_volunteers": {
+      "description": "Volunteers with status='active' who have logged at least 1 hour in the past 30 days",
+      "sql_hint": "SELECT COUNT(*) FROM volunteers v JOIN volunteer_assignments va ON v.id=va.volunteer_id WHERE v.status='active' AND va.assigned_at >= date('now','-30 days')",
+      "unit": "count",
+      "good_direction": "up"
+    },
+    "total_interns": {
+      "description": "Total intern records ever created",
+      "unit": "count",
+      "good_direction": "up"
+    },
+    "active_interns": {
+      "description": "Interns with status='active'",
+      "unit": "count",
+      "good_direction": "up"
+    },
+    "completion_rate": {
+      "description": "Percentage of interns who reached 'completed' status vs total who were 'accepted'",
+      "unit": "percentage",
+      "good_direction": "up",
+      "alert_threshold": 70
+    },
+    "funds_raised_inr": {
+      "description": "Sum of all entries in funds table (currency=INR)",
+      "unit": "INR",
+      "good_direction": "up"
+    },
+    "expenditure_ratio": {
+      "description": "Total expenditure / Total funds raised (should be < 0.9)",
+      "unit": "ratio",
+      "good_direction": "down",
+      "alert_threshold": 0.9
+    },
+    "content_published": {
+      "description": "Count of content_items with status='published' in the current month",
+      "unit": "count",
+      "good_direction": "up"
+    },
+    "volunteer_hours_total": {
+      "description": "Sum of hours_logged across all active volunteers",
+      "unit": "hours",
+      "good_direction": "up"
+    }
+  },
+  "reporting_periods": ["weekly", "monthly", "quarterly", "annual"],
+  "chart_recommendations": {
+    "active_volunteers_trend": "line",
+    "fund_utilization_by_category": "pie",
+    "intern_pipeline_by_status": "bar",
+    "content_by_platform": "bar",
+    "volunteer_hours_distribution": "histogram",
+    "monthly_funds_raised": "area"
+  },
+  "alert_thresholds": {
+    "volunteer_drop_percent": 20,
+    "budget_utilization_warning": 0.85,
+    "budget_utilization_critical": 0.95,
+    "intern_inactive_days": 14,
+    "content_gap_days": 7
+  },
+  "report_formats": {
+    "donor_report": {
+      "title": "Monthly Impact Report",
+      "sections": ["Summary Stats", "Fund Utilization", "Program Highlights", "Upcoming Plans"],
+      "format": "PDF"
+    },
+    "board_report": {
+      "title": "Quarterly Governance Report",
+      "sections": ["Financial Summary", "Volunteer Metrics", "Intern Outcomes", "Content Reach", "Risks & Mitigation"],
+      "format": "PDF"
+    },
+    "operations_report": {
+      "title": "Weekly Operations Digest",
+      "sections": ["Task Completion", "Active Volunteers", "Pending Approvals"],
+      "format": "CSV"
+    }
+  }
+}

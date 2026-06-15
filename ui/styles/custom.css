@@ -1,0 +1,170 @@
+/* NayePankh AI Workforce — Custom Streamlit Theme */
+
+/* ── Root Variables ─────────────────────────────────────── */
+:root {
+    --np-primary:    #FF6B35;
+    --np-secondary:  #004E89;
+    --np-accent:     #F7C59F;
+    --np-dark:       #0f172a;
+    --np-surface:    #1e293b;
+    --np-surface2:   #334155;
+    --np-text:       #f8fafc;
+    --np-muted:      #94a3b8;
+    --np-border:     #334155;
+    --np-success:    #22c55e;
+    --np-warning:    #f59e0b;
+    --np-error:      #ef4444;
+}
+
+/* ── Global Background ───────────────────────────────────── */
+.stApp {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    min-height: 100vh;
+}
+
+/* ── Main Content Area ───────────────────────────────────── */
+.main .block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    max-width: 1200px;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-right: 1px solid var(--np-border);
+}
+
+[data-testid="stSidebar"] .stButton button {
+    background: var(--np-surface2);
+    color: var(--np-text);
+    border: 1px solid var(--np-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    text-align: left;
+}
+
+[data-testid="stSidebar"] .stButton button:hover {
+    background: var(--np-primary);
+    border-color: var(--np-primary);
+    transform: translateX(2px);
+}
+
+/* ── Chat Messages ───────────────────────────────────────── */
+[data-testid="stChatMessage"] {
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    padding: 12px;
+}
+
+[data-testid="stChatMessageContent"] p {
+    color: var(--np-text);
+    line-height: 1.7;
+}
+
+/* ── Chat Input ──────────────────────────────────────────── */
+[data-testid="stChatInput"] {
+    border: 2px solid var(--np-secondary);
+    border-radius: 12px;
+    background: var(--np-surface);
+    transition: border-color 0.2s ease;
+}
+
+[data-testid="stChatInput"]:focus-within {
+    border-color: var(--np-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+/* ── Metric Cards ─────────────────────────────────────────── */
+[data-testid="stMetric"] {
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-testid="stMetric"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--np-primary) !important;
+    font-weight: 700;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--np-muted) !important;
+    font-size: 12px;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+    background: var(--np-surface);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent;
+    color: var(--np-muted);
+    border-radius: 8px;
+    padding: 8px 20px;
+    transition: all 0.2s ease;
+}
+
+.stTabs [aria-selected="true"] {
+    background: var(--np-primary) !important;
+    color: white !important;
+}
+
+/* ── Expander ────────────────────────────────────────────── */
+[data-testid="stExpander"] {
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 10px;
+    margin-bottom: 6px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.stButton button[kind="primary"] {
+    background: linear-gradient(135deg, var(--np-primary) 0%, #e85d20 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.stButton button[kind="primary"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+}
+
+/* ── Dividers ────────────────────────────────────────────── */
+hr {
+    border-color: var(--np-border);
+    margin: 16px 0;
+}
+
+/* ── Dataframes ──────────────────────────────────────────── */
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--np-border);
+    border-radius: 8px;
+}
+
+/* ── Spinner ──────────────────────────────────────────────── */
+[data-testid="stSpinner"] {
+    color: var(--np-primary);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--np-dark); }
+::-webkit-scrollbar-thumb { background: var(--np-surface2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--np-primary); }
