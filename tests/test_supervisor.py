@@ -21,7 +21,7 @@ class MockAgentResponse:
 @pytest.fixture
 def mock_supervisor():
     """Create a SupervisorAgent with mocked LLM calls."""
-    with patch("agents.supervisor.Ollama"), \
+    with patch("agents.supervisor.Groq"), \
          patch("agents.supervisor.Agent") as mock_agent_cls:
         mock_agent = MagicMock()
         mock_agent_cls.return_value = mock_agent

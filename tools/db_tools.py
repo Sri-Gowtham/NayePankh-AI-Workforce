@@ -9,7 +9,7 @@ import json
 import logging
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from memory.db import execute_query, execute_many
 
@@ -105,17 +105,28 @@ def update_task_record(task_id: int, status: str, result: dict = None,
         return _err(str(e))
 
 
-def get_recent_tasks(agent: str = None, limit: int = 20) -> dict:
+def get_recent_tasks(agent: Any = None, limit: Any = 20) -> dict:
     """Fetch recent task records, optionally filtered by agent."""
     try:
+        limit_val = int(limit) if limit else 20
         if agent:
+            # If the LLM passed an Agent instance instead of a string
+            if hasattr(agent, "__class__") and agent.__class__.__name__ == "Agent":
+                agent_name = agent.name or "agent"
+            else:
+                agent_name = str(agent)
+            
+            # If it's a class representation, default it
+            if "Agent(" in agent_name or "object at" in agent_name:
+                agent_name = "analytics_agent"
+                
             rows = execute_query(
                 "SELECT * FROM tasks WHERE agent=? ORDER BY created_at DESC LIMIT ?",
-                (agent, limit),
+                (agent_name, limit_val),
             )
         else:
             rows = execute_query(
-                "SELECT * FROM tasks ORDER BY created_at DESC LIMIT ?", (limit,)
+                "SELECT * FROM tasks ORDER BY created_at DESC LIMIT ?", (limit_val,)
             )
         return _ok(rows)
     except Exception as e:
@@ -126,14 +137,20 @@ def get_recent_tasks(agent: str = None, limit: int = 20) -> dict:
 # VOLUNTEER TOOLS
 # ════════════════════════════════════════════════════════════
 
-def add_volunteer(name: str, email: str, phone: str = None, city: str = None,
-                  skills: list = None, role: str = "field") -> dict:
+def add_volunteer(name: str = "Unknown", email: str = "unknown@example.com", phone: str = None, city: str = None,
+                  skills: Any = None, role: str = "field") -> dict:
     """Register a new volunteer."""
     try:
+        if isinstance(skills, str):
+            skills_list = [s.strip() for s in skills.split(",") if s.strip()]
+        elif isinstance(skills, list):
+            skills_list = skills
+        else:
+            skills_list = []
         execute_query(
             "INSERT INTO volunteers (name, email, phone, city, skills, role) "
             "VALUES (?, ?, ?, ?, ?, ?)",
-            (name, email, phone, city, json.dumps(skills or []), role),
+            (name, email, phone, city, json.dumps(skills_list), role),
             fetch="none",
         )
         return _ok({"registered": name})
@@ -176,38 +193,41 @@ def update_volunteer_status(email: str, status: str) -> dict:
         return _err(str(e))
 
 
-def log_volunteer_hours(email: str, hours: float) -> dict:
+def log_volunteer_hours(email: str, hours: Any) -> dict:
     """Increment volunteer's total logged hours."""
     try:
+        h_val = float(hours)
         execute_query(
             "UPDATE volunteers SET hours_logged = hours_logged + ? WHERE email=?",
-            (hours, email), fetch="none",
+            (h_val, email), fetch="none",
         )
-        return _ok({"hours_added": hours, "volunteer": email})
+        return _ok({"hours_added": h_val, "volunteer": email})
     except Exception as e:
         return _err(str(e))
 
 
-def assign_volunteer_task(volunteer_id: int, task_name: str,
+def assign_volunteer_task(volunteer_id: Any, task_name: str,
                           description: str = None, due_date: str = None) -> dict:
     """Assign a task to a volunteer."""
     try:
+        v_id = int(volunteer_id)
         execute_query(
             "INSERT INTO volunteer_assignments (volunteer_id, task_name, description, due_date) "
             "VALUES (?, ?, ?, ?)",
-            (volunteer_id, task_name, description, due_date), fetch="none",
+            (v_id, task_name, description, due_date), fetch="none",
         )
-        return _ok({"assigned": task_name, "volunteer_id": volunteer_id})
+        return _ok({"assigned": task_name, "volunteer_id": v_id})
     except Exception as e:
         return _err(str(e))
 
 
-def get_volunteer_assignments(volunteer_id: int) -> dict:
+def get_volunteer_assignments(volunteer_id: Any) -> dict:
     """Get all assignments for a volunteer."""
     try:
+        v_id = int(volunteer_id)
         rows = execute_query(
             "SELECT * FROM volunteer_assignments WHERE volunteer_id=? ORDER BY assigned_at DESC",
-            (volunteer_id,),
+            (v_id,),
         )
         return _ok(rows)
     except Exception as e:
@@ -218,14 +238,15 @@ def get_volunteer_assignments(volunteer_id: int) -> dict:
 # INTERN TOOLS
 # ════════════════════════════════════════════════════════════
 
-def add_intern(name: str, email: str, college: str = None, department: str = None,
-               program: str = None, duration_months: int = 1) -> dict:
+def add_intern(name: str = "Unknown", email: str = "unknown@example.com", college: str = None, department: str = None,
+               program: str = None, duration_months: Any = 1) -> dict:
     """Register a new intern application."""
     try:
+        dur = int(duration_months) if duration_months else 1
         execute_query(
             "INSERT INTO interns (name, email, college, department, program, duration_months) "
             "VALUES (?, ?, ?, ?, ?, ?)",
-            (name, email, college, department, program, duration_months),
+            (name, email, college, department, program, dur),
             fetch="none",
         )
         return _ok({"registered": name})
@@ -262,14 +283,15 @@ def list_interns(status: str = None, program: str = None, limit: int = 50) -> di
 
 
 def update_intern_status(email: str, status: str, start_date: str = None,
-                         end_date: str = None, mentor_id: int = None) -> dict:
+                          end_date: str = None, mentor_id: Any = None) -> dict:
     """Update intern status through the pipeline."""
     try:
-        if start_date or end_date or mentor_id:
+        m_id = int(mentor_id) if mentor_id else None
+        if start_date or end_date or m_id:
             execute_query(
                 "UPDATE interns SET status=?, start_date=COALESCE(?,start_date), "
                 "end_date=COALESCE(?,end_date), mentor_id=COALESCE(?,mentor_id) WHERE email=?",
-                (status, start_date, end_date, mentor_id, email), fetch="none",
+                (status, start_date, end_date, m_id, email), fetch="none",
             )
         else:
             execute_query(
@@ -280,40 +302,45 @@ def update_intern_status(email: str, status: str, start_date: str = None,
         return _err(str(e))
 
 
-def add_intern_milestone(intern_id: int, week: int, title: str,
-                         description: str, feedback: str = None, rating: int = None) -> dict:
+def add_intern_milestone(intern_id: Any, week: Any, title: str,
+                         description: str, feedback: str = None, rating: Any = None) -> dict:
     """Log a weekly milestone for an intern."""
     try:
+        i_id = int(intern_id)
+        w_val = int(week)
+        r_val = int(rating) if rating else None
         execute_query(
             "INSERT INTO intern_milestones (intern_id, week, title, description, feedback, rating) "
             "VALUES (?, ?, ?, ?, ?, ?)",
-            (intern_id, week, title, description, feedback, rating), fetch="none",
+            (i_id, w_val, title, description, feedback, r_val), fetch="none",
         )
-        return _ok({"milestone_added": f"Week {week} for intern {intern_id}"})
+        return _ok({"milestone_added": f"Week {w_val} for intern {i_id}"})
     except Exception as e:
         return _err(str(e))
 
 
-def get_intern_milestones(intern_id: int) -> dict:
+def get_intern_milestones(intern_id: Any) -> dict:
     """Retrieve all milestones for an intern."""
     try:
+        i_id = int(intern_id)
         rows = execute_query(
             "SELECT * FROM intern_milestones WHERE intern_id=? ORDER BY week",
-            (intern_id,),
+            (i_id,),
         )
         return _ok(rows)
     except Exception as e:
         return _err(str(e))
 
 
-def mark_certificate_issued(intern_id: int, certificate_url: str = None) -> dict:
+def mark_certificate_issued(intern_id: Any, certificate_url: str = None) -> dict:
     """Mark certificate as issued for an intern."""
     try:
+        i_id = int(intern_id)
         execute_query(
             "UPDATE interns SET certificate_issued=1, certificate_url=? WHERE id=?",
-            (certificate_url, intern_id), fetch="none",
+            (certificate_url, i_id), fetch="none",
         )
-        return _ok({"certificate_issued": True, "intern_id": intern_id})
+        return _ok({"certificate_issued": True, "intern_id": i_id})
     except Exception as e:
         return _err(str(e))
 
@@ -359,15 +386,16 @@ def get_content_items(type: str = None, status: str = None, limit: int = 20) -> 
         return _err(str(e))
 
 
-def update_content_status(content_id: int, status: str) -> dict:
+def update_content_status(content_id: Any, status: str) -> dict:
     """Update content item status (draft→review→approved→published)."""
     try:
+        c_id = int(content_id)
         pub_at = datetime.utcnow().isoformat() if status == "published" else None
         execute_query(
             "UPDATE content_items SET status=?, published_at=COALESCE(?,published_at) WHERE id=?",
-            (status, pub_at, content_id), fetch="none",
+            (status, pub_at, c_id), fetch="none",
         )
-        return _ok({"updated": content_id, "status": status})
+        return _ok({"updated": c_id, "status": status})
     except Exception as e:
         return _err(str(e))
 
@@ -397,43 +425,46 @@ def add_donor(name: str, email: str = None, phone: str = None, city: str = None,
         return _err(str(e))
 
 
-def add_fund(source: str, category: str, amount: float, currency: str = "INR",
-             received_at: str = None, donor_id: int = None,
+def add_fund(source: str, category: str, amount: Any, currency: str = "INR",
+             received_at: str = None, donor_id: Any = None,
              reference_no: str = None, notes: str = None) -> dict:
     """Log an incoming fund entry."""
     try:
+        amt_val = float(amount)
+        d_id = int(donor_id) if donor_id else None
         execute_query(
             "INSERT INTO funds (donor_id, source, category, amount, currency, "
             "received_at, reference_no, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (donor_id, source, category, amount, currency,
+            (d_id, source, category, amt_val, currency,
              received_at or datetime.utcnow().date().isoformat(),
              reference_no, notes),
             fetch="none",
         )
         # Update donor total
-        if donor_id:
+        if d_id:
             execute_query(
                 "UPDATE donors SET total_donated=total_donated+?, last_donation_date=date('now') "
                 "WHERE id=?",
-                (amount, donor_id), fetch="none",
+                (amt_val, d_id), fetch="none",
             )
-        return _ok({"fund_logged": amount, "category": category})
+        return _ok({"fund_logged": amt_val, "category": category})
     except Exception as e:
         return _err(str(e))
 
 
-def add_expenditure(category: str, description: str, amount: float,
+def add_expenditure(category: str, description: str, amount: Any,
                     currency: str = "INR", approved_by: str = None,
                     vendor: str = None, receipt_url: str = None) -> dict:
     """Log an expenditure."""
     try:
+        amt_val = float(amount)
         execute_query(
             "INSERT INTO expenditures (category, description, amount, currency, "
             "approved_by, vendor, receipt_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (category, description, amount, currency, approved_by, vendor, receipt_url),
+            (category, description, amt_val, currency, approved_by, vendor, receipt_url),
             fetch="none",
         )
-        return _ok({"expenditure_logged": amount, "category": category})
+        return _ok({"expenditure_logged": amt_val, "category": category})
     except Exception as e:
         return _err(str(e))
 

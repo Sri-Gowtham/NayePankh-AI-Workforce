@@ -7,14 +7,15 @@ Generates brand-aligned social media posts, newsletters, campaigns, etc.
 import logging
 
 from agno.agent import Agent
-from agno.models.ollama import Ollama
+from agno.models.groq import Groq
 
-from config import OLLAMA_MODEL, OLLAMA_BASE_URL
+from config import GROQ_MODEL, GROQ_API_KEY, LLM_TEMPERATURE
 from tools.db_tools import (
     save_content, get_content_items, update_content_status,
     create_task_record, update_task_record,
 )
 from tools.kb_tools import get_full_kb_as_context
+from utils.error_utils import format_llm_error, parse_llm_response
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,11 @@ After generating content, ask if the user wants to:
 - Edit/refine it
 - Save it as draft (default)
 - Mark it as ready for review
+
+CRITICAL: When handling a request, first decide: Should I answer directly, or should I call a tool?
+- For ACTION requests (e.g. save, add, create record, update, delete, register, export), YOU MUST call the appropriate tool.
+- For KNOWLEDGE / CONTENT requests (e.g. explain, suggest, generate content, campaign ideas, advice, recommendations, write a post), YOU MUST answer directly using your knowledge and return the generated content. DO NOT call any tools. Do not save drafts unless explicitly asked to do so.
+CRITICAL: Do NOT write preambles, explanations, or conversational thoughts when you need to call a tool. Execute the tool call directly as your entire response.
 """
 
 
@@ -49,7 +55,7 @@ class ContentAgent:
     """Handles all content generation queries."""
 
     def __init__(self):
-        self.llm = Ollama(id=OLLAMA_MODEL, host=OLLAMA_BASE_URL)
+        self.llm = Groq(id=GROQ_MODEL, api_key=GROQ_API_KEY, temperature=LLM_TEMPERATURE)
         kb_context = get_full_kb_as_context("content")
         self.agent = Agent(
             model=self.llm,
@@ -69,7 +75,7 @@ class ContentAgent:
             context = _build_history_context(history)
             prompt = f"{context}\nUser: {user_message}" if context else user_message
             response = self.agent.run(prompt)
-            result_text = response.content
+            result_text = parse_llm_response(response.content)
             if task_id:
                 update_task_record(task_id, "done", {"length": len(result_text)})
             return result_text
@@ -77,7 +83,7 @@ class ContentAgent:
             logger.error(f"[ContentAgent] Error: {e}")
             if task_id:
                 update_task_record(task_id, "failed", error_msg=str(e))
-            return f"⚠️ Content Agent encountered an error: {str(e)}"
+            return format_llm_error(e)
 
 
 def _build_history_context(history: list[dict], max_turns: int = 4) -> str:

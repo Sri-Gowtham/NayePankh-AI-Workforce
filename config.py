@@ -16,10 +16,10 @@ APP_TITLE       = os.getenv("APP_TITLE", "NayePankh AI Workforce")
 APP_ENV         = os.getenv("APP_ENV", "development")
 LOG_LEVEL       = os.getenv("LOG_LEVEL", "INFO")
 
-# ── Ollama / LLM ────────────────────────────────────────────
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL    = os.getenv("OLLAMA_MODEL", "qwen3:8b")
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.4"))
+# ── Groq / LLM ──────────────────────────────────────────────
+GROQ_API_KEY    = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL      = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.0"))
 LLM_MAX_TOKENS  = int(os.getenv("LLM_MAX_TOKENS", "4096"))
 
 # ── Database ─────────────────────────────────────────────────

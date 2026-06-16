@@ -13,7 +13,7 @@ def render_sidebar() -> None:
     with st.sidebar:
         # ── Logo / Title ─────────────────────────────────────
         st.markdown(f"## {PAGE_ICON} {APP_TITLE}")
-        st.markdown("*Powered by Agno + Ollama qwen3:8b*")
+        st.markdown("*Powered by Agno + Groq llama-3.3-70b*")
         st.divider()
 
         # ── New Conversation ──────────────────────────────────

@@ -6,9 +6,10 @@ Main Streamlit entry point.
 Layout:
   ├── Sidebar  (session nav, quick actions, agent status)
   └── Main Area
-      ├── Tab 1: 💬 Chat (conversational UI)
-      ├── Tab 2: 📊 Dashboard (live KPIs)
-      └── Tab 3: 📋 Task Log (task history)
+      ├── Tab 1: 🏠 OS Overview (landing dashboard, active agent directory, architecture flowchart)
+      ├── Tab 2: 💬 Chat Terminal (conversational UI + execution timeline monitor)
+      ├── Tab 3: 📊 Live Dashboard (real-time charity KPIs, Plotly charts)
+      └── Tab 4: 📋 Task Log (task history)
 """
 import logging
 import uuid
@@ -18,7 +19,7 @@ import streamlit as st
 
 # ── Page config MUST be the first Streamlit call ─────────────
 st.set_page_config(
-    page_title="NayePankh AI Workforce",
+    page_title="NayePankh AI Operating System",
     page_icon="🕊️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -41,6 +42,7 @@ init_db()
 
 # ── Import UI Components ──────────────────────────────────────
 from ui.components.sidebar      import render_sidebar
+from ui.components.overview     import render_overview
 from ui.components.chat_window  import render_chat_window, render_chat_input
 from ui.components.timeline     import render_workflow_timeline
 from ui.components.dashboard    import render_dashboard
@@ -79,12 +81,18 @@ _init_session()
 render_sidebar()
 
 # ── Main Content Tabs ─────────────────────────────────────────
-tab_chat, tab_dashboard, tab_tasks = st.tabs([
-    "💬 AI Chat",
-    "📊 Dashboard",
+tab_overview, tab_chat, tab_dashboard, tab_tasks = st.tabs([
+    "🏠 OS Overview",
+    "💬 Chat Terminal",
+    "📊 Live Dashboard",
     "📋 Task Log",
 ])
 
+# ── Tab 1: OS Overview ────────────────────────────────────────
+with tab_overview:
+    render_overview()
+
+# ── Tab 2: Chat Terminal ──────────────────────────────────────
 with tab_chat:
     # 1. Sync messages from DB on every render to catch background thread updates
     session_id = st.session_state["session_id"]
@@ -117,14 +125,14 @@ with tab_chat:
 
         # Stream agent response
         with st.chat_message("assistant", avatar="🕊️"):
-            with st.spinner("🧠 Routing to the right agent..."):
+            with st.spinner("🧠 Supervisor routing workflow tasks..."):
                 try:
                     response_text = supervisor.run(user_input, session_id)
                 except Exception as e:
                     logger.error(f"Supervisor error: {e}")
                     response_text = (
                         "⚠️ I encountered an unexpected error. "
-                        "Please check that Ollama is running with qwen3:8b pulled, "
+                        "Please check that your GROQ_API_KEY is configured in your .env, "
                         "then try again."
                     )
 
@@ -132,14 +140,10 @@ with tab_chat:
 
         st.rerun()
 
-# ══════════════════════════════════════════════════════════════
-# TAB 2: Dashboard
-# ══════════════════════════════════════════════════════════════
+# ── Tab 3: Live Dashboard ─────────────────────────────────────
 with tab_dashboard:
     render_dashboard()
 
-# ══════════════════════════════════════════════════════════════
-# TAB 3: Task Log
-# ══════════════════════════════════════════════════════════════
+# ── Tab 4: Task Log ───────────────────────────────────────────
 with tab_tasks:
     render_task_tracker()

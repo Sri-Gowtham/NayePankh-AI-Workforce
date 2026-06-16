@@ -15,13 +15,14 @@ import logging
 from typing import Optional
 
 from agno.agent import Agent
-from agno.models.ollama import Ollama
+from agno.models.groq import Groq
 
-from config import OLLAMA_MODEL, OLLAMA_BASE_URL, LLM_TEMPERATURE
+from config import GROQ_MODEL, GROQ_API_KEY, LLM_TEMPERATURE
 from tools.db_tools import (
     create_task_record, update_task_record,
     save_message, get_session_messages
 )
+from utils.error_utils import format_llm_error, parse_llm_response
 
 logger = logging.getLogger(__name__)
 
@@ -62,16 +63,31 @@ class SupervisorAgent:
     """
 
     def __init__(self):
-        self.router_llm = Ollama(
-            id=OLLAMA_MODEL,
-            host=OLLAMA_BASE_URL,
+        self.router_llm = Groq(
+            id=GROQ_MODEL,
+            api_key=GROQ_API_KEY,
+            temperature=LLM_TEMPERATURE,
+        )
+        self.general_llm = Groq(
+            id=GROQ_MODEL,
+            api_key=GROQ_API_KEY,
+            temperature=LLM_TEMPERATURE,
         )
         self._router_agent = Agent(
             model=self.router_llm,
             system_message=ROUTER_SYSTEM_PROMPT,
             markdown=False,
         )
-        logger.info("[Supervisor] Initialized with router agent.")
+        self._general_agent = Agent(
+            model=self.general_llm,
+            system_message=(
+                "You are the NayePankh AI Operating System assistant. "
+                "You help coordinate NGO workforce tasks. Respond warmly, conversational, and "
+                "guide the user on what specialist agents you have (volunteer, internship, content, analytics, resources)."
+            ),
+            markdown=True,
+        )
+        logger.info("[Supervisor] Initialized with router and general agents.")
 
     def classify_intent(self, user_message: str, history: list[dict]) -> dict:
         """
@@ -98,9 +114,11 @@ class SupervisorAgent:
             response = self._router_agent.run(classification_prompt)
             raw = response.content.strip()
 
-            # Extract JSON even if surrounded by markdown fences
-            if "```" in raw:
-                raw = raw.split("```")[1].replace("json", "").strip()
+            # Extract JSON block using regex
+            import re
+            json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+            if json_match:
+                raw = json_match.group(0)
 
             classification = json.loads(raw)
             return classification
@@ -146,10 +164,7 @@ class SupervisorAgent:
             response_text = self._dispatch(domain, user_message, history, session_id)
         except Exception as e:
             logger.error(f"[Supervisor] Dispatch error: {e}")
-            response_text = (
-                "I encountered an issue processing your request. "
-                "Please try rephrasing or contact the NayePankh admin team."
-            )
+            response_text = format_llm_error(e)
             if task_id:
                 update_task_record(task_id, "failed", error_msg=str(e))
             return response_text
@@ -207,20 +222,9 @@ class SupervisorAgent:
 
     def _handle_general(self, user_message: str) -> str:
         """Handle greetings and meta queries directly in the supervisor."""
-        general_prompt = (
-            "You are the NayePankh AI Workforce assistant — an intelligent operating system "
-            "for NayePankh Foundation NGO. You have 5 specialist agents:\n"
-            "• Volunteer Agent — volunteer onboarding, assignments, retention\n"
-            "• Internship Agent — intern applications, milestones, certificates\n"
-            "• Content Agent — social posts, newsletters, campaigns\n"
-            "• Analytics Agent — KPIs, reports, trends\n"
-            "• Resource Agent — funds, donations, budget tracking\n\n"
-            f"User asked: {user_message}\n\n"
-            "Respond warmly and helpfully. Guide them on what you can help with."
-        )
         try:
-            response = self._router_agent.run(general_prompt)
-            return response.content
+            response = self._general_agent.run(user_message)
+            return parse_llm_response(response.content)
         except Exception as e:
             return (
                 "👋 Welcome to NayePankh AI Workforce! I can help with:\n"

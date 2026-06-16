@@ -5,16 +5,16 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 from agno.agent import Agent
-from agno.models.ollama import Ollama
+from agno.models.groq import Groq
 
-from config import OLLAMA_MODEL, OLLAMA_BASE_URL
+from config import GROQ_MODEL, GROQ_API_KEY, LLM_TEMPERATURE
 from engine.workflows import WORKFLOW_TEMPLATES
 from tools.db_tools import (
     create_workflow,
-    add_workflow_step,
     update_workflow_status,
+    get_workflow,
+    add_workflow_step,
     update_workflow_step,
-    get_workflow_steps
 )
 
 # Import specialist agents
@@ -23,14 +23,16 @@ from agents.internship_agent import InternshipAgent
 from agents.content_agent import ContentAgent
 from agents.analytics_agent import AnalyticsAgent
 from agents.resource_agent import ResourceAgent
+from utils.error_utils import format_llm_error
 
 logger = logging.getLogger(__name__)
 
 class Orchestrator:
     def __init__(self):
-        self.llm = Ollama(
-            id=OLLAMA_MODEL,
-            host=OLLAMA_BASE_URL
+        self.llm = Groq(
+            id=GROQ_MODEL,
+            api_key=GROQ_API_KEY,
+            temperature=LLM_TEMPERATURE
         )
         self.planner_agent = Agent(
             model=self.llm,
@@ -136,7 +138,7 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"[Orchestrator] Step failed: {e}")
                 update_workflow_step(step_id, "failed", str(e))
-                outputs.append(f"--- Output from {agent_name.capitalize()} Agent ---\nFailed: {e}")
+                outputs.append(f"--- Output from {agent_name.capitalize()} Agent ---\nFailed: {format_llm_error(e)}")
 
         # 4. Aggregation
         aggregation_prompt = (
@@ -156,4 +158,4 @@ class Orchestrator:
         except Exception as e:
             logger.error(f"[Orchestrator] Aggregation failed: {e}")
             update_workflow_status(workflow_id, "failed", str(e))
-            return {"error": "Workflow execution failed during aggregation."}
+            return {"error": format_llm_error(e)}

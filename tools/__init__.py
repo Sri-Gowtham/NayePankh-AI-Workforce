@@ -35,6 +35,14 @@ from .db_tools import (
     create_task_record,
     update_task_record,
     get_recent_tasks,
+    # Orchestration tools
+    create_workflow,
+    update_workflow_status,
+    get_workflow,
+    get_active_workflow,
+    add_workflow_step,
+    update_workflow_step,
+    get_workflow_steps,
 )
 from .kb_tools import search_knowledge, load_knowledge_base
 from .email_tools import send_email, log_email_event
@@ -52,4 +60,7 @@ __all__ = [
     "search_knowledge", "load_knowledge_base",
     "send_email", "log_email_event",
     "export_to_csv", "export_to_pdf",
+    "create_workflow", "update_workflow_status", "get_workflow",
+    "get_active_workflow", "add_workflow_step", "update_workflow_step",
+    "get_workflow_steps",
 ]

@@ -6,9 +6,9 @@ Specialist agent for the full intern lifecycle.
 import logging
 
 from agno.agent import Agent
-from agno.models.ollama import Ollama
+from agno.models.groq import Groq
 
-from config import OLLAMA_MODEL, OLLAMA_BASE_URL
+from config import GROQ_MODEL, GROQ_API_KEY, LLM_TEMPERATURE
 from tools.db_tools import (
     add_intern, get_intern, list_interns,
     update_intern_status, add_intern_milestone,
@@ -17,6 +17,7 @@ from tools.db_tools import (
 )
 from tools.kb_tools import get_full_kb_as_context
 from tools.email_tools import send_intern_offer_letter, send_certificate_notification
+from utils.error_utils import format_llm_error, parse_llm_response
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,12 @@ Key rules:
 - Weekly milestone submissions should include: tasks done, learnings, challenges, next plan
 - Be precise with dates and program durations
 
+CRITICAL: When handling a request, first decide: Should I answer directly, or should I call a tool?
+- For ACTION requests (e.g. add, create record, update, delete, register, export), YOU MUST call the appropriate tool.
+- For KNOWLEDGE / CONTENT requests (e.g. explain, suggest, advice, recommendations), YOU MUST answer directly using your knowledge. DO NOT call any tools.
+CRITICAL: Do NOT write preambles, explanations, or conversational thoughts when you need to call a tool. Execute the tool call directly as your entire response. You can explain the results after the tool returns its output.
+CRITICAL: Only check if an intern exists (using get_intern) if the user has explicitly provided an email address in their message. If no email is provided, do NOT call get_intern; instead, ask the user to provide their email first.
+
 Always confirm actions before executing irreversible operations.
 """
 
@@ -41,7 +48,7 @@ class InternshipAgent:
     """Handles all internship-domain queries."""
 
     def __init__(self):
-        self.llm = Ollama(id=OLLAMA_MODEL, host=OLLAMA_BASE_URL)
+        self.llm = Groq(id=GROQ_MODEL, api_key=GROQ_API_KEY, temperature=LLM_TEMPERATURE)
         kb_context = get_full_kb_as_context("internship")
         self.agent = Agent(
             model=self.llm,
@@ -64,7 +71,7 @@ class InternshipAgent:
             context = _build_history_context(history)
             prompt = f"{context}\nUser: {user_message}" if context else user_message
             response = self.agent.run(prompt)
-            result_text = response.content
+            result_text = parse_llm_response(response.content)
             if task_id:
                 update_task_record(task_id, "done", {"length": len(result_text)})
             return result_text
@@ -72,7 +79,7 @@ class InternshipAgent:
             logger.error(f"[InternshipAgent] Error: {e}")
             if task_id:
                 update_task_record(task_id, "failed", error_msg=str(e))
-            return f"⚠️ Internship Agent encountered an error: {str(e)}"
+            return format_llm_error(e)
 
 
 def _build_history_context(history: list[dict], max_turns: int = 4) -> str:
